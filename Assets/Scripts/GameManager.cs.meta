@@ -5,7 +5,17 @@ MonoImporter:
   serializedVersion: 2
   defaultReferences:
   - tile: {fileID: 8218182763597430102, guid: 4bce027e3f1cb3741b5e7a4c2b36050b, type: 3}
+  - player: {instanceID: 0}
+  - gameOverScreen: {instanceID: 0}
   - timer: {instanceID: 0}
+  - lavaBoots: {instanceID: 0}
+  - healthText: {instanceID: 0}
+  - audioPickup: {fileID: 8300000, guid: 5ab8fc664ca4d604f820e255005a664a, type: 3}
+  - audioHover: {fileID: 8300000, guid: e7992d172691ce147bde04a9ea103f2c, type: 3}
+  - audioClick: {fileID: 8300000, guid: 24d73765699ce3e46bb23cabc3a46494, type: 3}
+  - audioDeath: {fileID: 8300000, guid: bd8857660a16ba549b8cc522d93d9117, type: 3}
+  - audioLava: {fileID: 8300000, guid: d1698dd553af8ef4d887bc83b9687173, type: 3}
+  - audioWalking: {fileID: 8300000, guid: a35ec44331d4b514cabf31e928f058b5, type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

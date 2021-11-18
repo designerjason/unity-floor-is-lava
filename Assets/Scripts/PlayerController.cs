@@ -7,17 +7,23 @@ public class PlayerController : MonoBehaviour
     private int moveIncrement = 1;
     private float vertBounds = 2.5f;
     private float horizBounds = 4.5f;
-    private string playerFacing;
     private GameManager gameManager;
     private GameObject bootsActive;
-
+    public Animator animator;
+    public GameObject smoke;
+    private IEnumerator animatePlayer;
+    private bool runOnce = false;
+    private AudioSource audioSource;
+    private int dieOnce;
 
     // Start is called before the first frame update
     void Awake()
     {
+        animatePlayer = AnimatePlayer("Down");
         gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
         bootsActive = gameManager.lavaBoots;
-        //playerFacing = "down";
+        audioSource = gameObject.GetComponent<AudioSource>();
+        dieOnce = 0;
     }
 
 
@@ -37,28 +43,39 @@ public class PlayerController : MonoBehaviour
 
             if (Input.GetKeyDown(KeyCode.DownArrow) && posY != -vertBounds)
             {
-                transform.position = new Vector2(posX, posY - moveIncrement);
-                //playerFacing = "down";
-
+                PlayerMoveActions("Down", new Vector2 (posX, posY - moveIncrement));
             }
             else if (Input.GetKeyDown(KeyCode.UpArrow) && posY != vertBounds)
             {
-                transform.position = new Vector2(posX, posY + moveIncrement);
-                //playerFacing = "up";
-
+                PlayerMoveActions("Up", new Vector2 (posX, posY + moveIncrement));
             }
             else if (Input.GetKeyDown(KeyCode.LeftArrow) && posX != -horizBounds)
             {
-                transform.position = new Vector2(posX - moveIncrement, posY);
-                //playerFacing = "left";
-
+                PlayerMoveActions("Left", new Vector2 (posX - moveIncrement, posY));
             }
             else if (Input.GetKeyDown(KeyCode.RightArrow) && posX != horizBounds)
             {
-                transform.position = new Vector2(posX + moveIncrement, posY);
-                //playerFacing = "right";
+                PlayerMoveActions("Right", new Vector2 (posX + moveIncrement, posY));
             }
         }
+    }
+
+    // do the things when a player moves, like play a sound etc.
+    void PlayerMoveActions(string direction, Vector2 position)
+    {
+        animatePlayer = AnimatePlayer(direction);
+        StartCoroutine(animatePlayer);
+        transform.position = position;
+        audioSource.PlayOneShot(gameManager.audioWalking);
+    }
+
+
+    // play animation for player once, depending on direction
+    IEnumerator AnimatePlayer(string direction) 
+    {
+        animator.SetBool(direction, true);
+        yield return new WaitForSeconds(0.1f); 
+        animator.SetBool(direction, false);
     }
 
 
@@ -68,45 +85,71 @@ public class PlayerController : MonoBehaviour
         // stepped on pickup
         if (other.gameObject.GetComponent<TileManager>().isPickup)
         {
-            gameManager.lavaBootshealth = 100;
-            gameManager.healthText.text = gameManager.lavaBootshealth.ToString() + "%";
+            audioSource.PlayOneShot(gameManager.audioPickup);
+            gameManager.lavaBootsHealth = 100;
+
+            if(DifficultySelect.difficulty == "Easy") {
+                gameManager.lavaBootsHealth = 200;
+            } else {
+                gameManager.lavaBootsHealth = 100;
+            }
+
+            gameManager.healthText.text = gameManager.lavaBootsHealth.ToString() + "%";
             bootsActive.SetActive(true);
             other.gameObject.GetComponent<TileManager>().isPickup = false;
         }
 
-        // stepped on a deadly tile?
+        // stepped on a deadly tile
         if (other.gameObject.GetComponent<TileManager>().isDeadly)
         {
             gameManager.onDeadlyTile = true;
-            if (bootsActive.activeSelf)
+            if (!bootsActive.activeSelf)
             {
-                // start coroutine to reduce lavaboot strength
-                StartCoroutine(gameManager.lavaDamage);
-            }
-            else
-            {
+                smoke.SetActive(true);
+                audioSource.PlayOneShot(gameManager.audioDeath);
                 gameManager.GameOver();
             }
         }
+
+        // tile is not deadly
         else
         {
             gameManager.onDeadlyTile = false;
+            runOnce = false;
             if (bootsActive.activeSelf)
             {
-                // start coroutine to reduce lavaboot strength
+                smoke.SetActive(false);
+                // stop coroutine to reduce lavaboot strength
                 StopCoroutine(gameManager.lavaDamage);
             }
         }
     }
 
+
+    // whilst inside a trigger, e.g lava
     void OnTriggerStay2D(Collider2D other)
     {
         if (other.gameObject.GetComponent<TileManager>().isDeadly)
         {
-            if (!bootsActive.activeSelf)
-            {
+            gameManager.onDeadlyTile = true;
+            if(bootsActive.activeSelf && !runOnce) {
+                smoke.SetActive(true);
+                StartCoroutine(gameManager.lavaDamage);
+                
+                // I need to stop the coroutine triggering over and over, so use a bool as a switch
+                runOnce = true;
+            } else if(!bootsActive.activeSelf) {
+                
+                // stop repeating, as above
+                while(dieOnce == 0) {
+                    audioSource.PlayOneShot(gameManager.audioDeath);
+                    dieOnce++;
+                } 
+
                 gameManager.GameOver();
-            }
+            }  
+        } else {
+            gameManager.onDeadlyTile = false;
         }
     }
 }

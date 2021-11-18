@@ -17,15 +17,15 @@ public class DifficultySelect : MonoBehaviour, IPointerEnterHandler, IPointerExi
         switch (gameObject.name)
         {
             case "Easy":
-            desc.text = "There are lava boots spawned on the level to help you survive.";
+            desc.text = "There are multiple lava potions spawned on the level to help you survive. And they last twice as long!";
             break;
 
             case "Normal":
-            desc.text = "Only <b>one</b> pair of lava boots are spawned. Use them wisely...";
+            desc.text = "Only <b>one</b> lava potion is spawned. Use them wisely...";
             break;
 
             case "Luck":
-            desc.text = "<b>There are no lava boots to help you</b>. Can you survive to the end..? Only the Gods of fate can decide.";
+            desc.text = "<b>There are no lava potions to help you</b>. Can you survive to the end..? Only the Gods of fate can decide.";
             break;
 
             default:
@@ -42,8 +42,7 @@ public class DifficultySelect : MonoBehaviour, IPointerEnterHandler, IPointerExi
     public void ButtonClicked()
     {
     	string name = EventSystem.current.currentSelectedGameObject.name;
-        //difficulty = name;
-        difficulty = "Easy";
+        difficulty = name;
         SceneManager.LoadScene("Game");
     }
 }

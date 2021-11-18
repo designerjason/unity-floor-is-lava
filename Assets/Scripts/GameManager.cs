@@ -24,35 +24,62 @@ public class GameManager : MonoBehaviour
     public bool onDeadlyTile;
     string currentScene;
 
+    [Header("Graphics")]
+    private Animator playerAnim;
 
     [Header("HUD")]
     [SerializeField] private GameObject gameOverScreen;
+    [SerializeField] private GameObject gameWinScreen;
     public TextMeshProUGUI timer;
     public GameObject lavaBoots;
-    public int lavaBootshealth = 100;
+    public int lavaBootsHealth;
     public TextMeshProUGUI healthText;
+
+    [Header("Audio")]
+    public AudioClip audioPickup;
+    public AudioClip audioHover;
+    public AudioClip audioClick;
+    public AudioClip audioDeath;
+    public AudioClip audioLava;
+    public AudioClip audioWalking;
+    public AudioClip audioVictory;
+    private AudioSource audioSource;
+    private AudioSource bgMusic;
 
     void Awake() {
         currentScene = SceneManager.GetActiveScene().name;
 
+        if(DifficultySelect.difficulty == "Easy") {
+            lavaBootsHealth = 200;
+        } else {
+            lavaBootsHealth = 100;
+        }
+
         if( currentScene == "Game" ) {
             StartGame();
+            playerAnim = GameObject.FindWithTag("Player").GetComponent<Animator>();
+            audioSource = gameObject.GetComponent<AudioSource>();
+            bgMusic = GameObject.Find("Audio Source").GetComponent<AudioSource>();
         }
     }
 
     void Update()
     {
-        if(lavaBootshealth == 0) {
-            lavaBoots.SetActive(false);
-        }
+        if( currentScene == "Game" ) {
+            if(lavaBootsHealth == 0) {
+                lavaBoots.SetActive(false);
+            }
 
-        if(lavaBootshealth == 0 && onDeadlyTile) {
-            GameOver();
-        }
+            if(lavaBootsHealth == 0 && onDeadlyTile) {
+                GameOver();
+            }
 
-        // and check if not on lava
-        if(activeTiles.Count == 1 && !gameOver) {
-           GameWin();
+            // win game if you are on the last tile, is not already gameover and you're not on a deadly tile
+            if(activeTiles.Count == 1 && !gameOver && !onDeadlyTile) {
+                audioSource.clip = audioVictory;
+                audioSource.Play();
+                GameWin();
+            }
         }
     }
 
@@ -108,7 +135,7 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadScene("Game");
     }
 
-    // restart level
+    // back to main menu
     public void GameQuit()
     {
         SceneManager.LoadScene("StartMenu");
@@ -145,12 +172,13 @@ public class GameManager : MonoBehaviour
             yield return new WaitForSeconds(1);
             int randomTile = Random.Range(0, timeLimit);
             GameObject thisTile = GameObject.Find(activeTiles[randomTile].ToString());
-            thisTile.GetComponent<TileManager>().isDeadly = true;
-            thisTile.GetComponent<TileManager>().isPickup = false;
+            TileManager thisTileScript = thisTile.GetComponent<TileManager>();
+            thisTileScript.isDeadly = true;
+            thisTileScript.isPickup = false;
 
             //update hud
             timeLimit--;
-            timer.text = timeLimit.ToString();
+            //timer.text = timeLimit.ToString();
 
             //remove random tile
             activeTiles.RemoveAt(randomTile);
@@ -161,10 +189,12 @@ public class GameManager : MonoBehaviour
     //coroutine for damage
     public IEnumerator LavaBootDamage()
     {
-        while (lavaBootshealth > 0 && !gameOver)
+        while (lavaBootsHealth > 0 && !gameOver)
         {
-            lavaBootshealth -= 25;
-            healthText.text = lavaBootshealth.ToString() + "%";
+            audioSource.clip = this.audioLava;
+            audioSource.PlayOneShot(this.audioLava);
+            lavaBootsHealth -= 25;
+            healthText.text = lavaBootsHealth.ToString() + "%";
             yield return new WaitForSeconds(1);
         }
     }
@@ -184,14 +214,22 @@ public class GameManager : MonoBehaviour
     //win the game!
     public void GameWin()
     {
-        timer.text = "YOU WIN!!!";
+        gameOver = true;
+        bgMusic.clip = audioVictory;
+        bgMusic.Play();
+        bgMusic.loop = false;
+        StopCoroutine("CountDown");
+        gameWinScreen.SetActive(true);
+        playerAnim.SetBool("Win", true);
     }
 
 
     //what happens when game over
     public void GameOver()
     {
+        bgMusic.Stop();
         gameOver = true;
+        playerAnim.SetBool("Die", true);
         StopCoroutine("CountDown");
         gameOverScreen.SetActive(true);
     }

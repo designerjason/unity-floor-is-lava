@@ -6,20 +6,34 @@ public class TileManager : MonoBehaviour
 {
     public bool isDeadly = false;
     public bool isPickup = false;
-    public GameObject sprite;
+
+    [Header("Sprites")]
+    private SpriteRenderer tileSprite;
+    private SpriteRenderer tileParent;
+    public GameObject tile;
+    public GameObject sprite;    
+    public Sprite lavaBootSprite;    
+    public Sprite tileSpriteLava;
+
+    void Start() {
+        tileSprite = sprite.GetComponent<SpriteRenderer>();
+        tileParent = tile.GetComponent<SpriteRenderer>();
+    }
 
     void Update()
     {
         if (isPickup)
         {
-            sprite.GetComponent<SpriteRenderer>().color = Color.green;
+            tileSprite.color = Color.white;
+            tileSprite.sprite = lavaBootSprite;
         } else {
-            sprite.GetComponent<SpriteRenderer>().color = Color.black;
+            tileSprite.sprite = null;
+            tileSprite.color = Color.black;
         }
 
         if(isDeadly)
         {
-            sprite.GetComponent<SpriteRenderer>().color = Color.red;
+            tileParent.sprite = tileSpriteLava;
         }
     }
 }

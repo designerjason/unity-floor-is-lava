@@ -21,7 +21,7 @@ public class DifficultySelect : MonoBehaviour, IPointerEnterHandler, IPointerExi
             break;
 
             case "Normal":
-            desc.text = "Only <b>one</b> lava potion is spawned. Use them wisely...";
+            desc.text = "Only <b>one</b> lava potion is spawned. Use it wisely...";
             break;
 
             case "Luck":
